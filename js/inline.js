@@ -34,6 +34,42 @@ if ('serviceWorker' in navigator) {
 //     });
 // }
 
+function cachedUrlList() {
+    //make ul element
+    var ulElement = document.createElement('ul');
+    var ulAtt = document.createAttribute("id");
+    ulAtt.value = "contents";
+    ulElement.setAttributeNode(ulAtt);
+    //make div "list" element
+    var buttonElement = document.createElement('button');
+    var buttonAtt = document.createAttribute("id");
+    buttonAtt.value = "list-contents";
+    buttonElement.setAttributeNode(buttonAtt);
+    var divElement = document.createElement('div');
+    var offlineSidebar = document.querySelector('#index-panels');
+    //add element to index panels
+    divElement.appendChild(buttonElement);
+    divElement.appendChild(ulElement);
+    offlineSidebar.appendChild(divElement);
+    document.querySelector('#list-contents').addEventListener('click', function() {
+        sendMessage({
+            command: 'keys'
+        }).then(function(data) {
+             var contentsElement = document.querySelector('#contents');
+            // Clear out the existing items from the list.
+            while (contentsElement.firstChild) {
+            contentsElement.removeChild(contentsElement.firstChild);
+            }
+            // Add each cached URL to the list, one by one.
+            data.urls.forEach(function(url) {
+                var liElement = document.createElement('li');
+                liElement.textContent = url;
+                contentsElement.appendChild(liElement);
+            });
+        }
+    }
+}
+
 function sendMessage(message) {
     // This wraps the message posting/response in a promise, which will resolve if the response doesn't
     // contain an error, and reject with the error if it does. If you'd prefer, it's possible to call

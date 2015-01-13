@@ -51,6 +51,24 @@ self.addEventListener('message', function(event) {
                     });
                 });
                 break;
+
+             case 'keys':
+                cache.keys().then(function(requests) {
+                  var urls = requests.map(function(request) {
+                    return request.url;
+                  });
+
+                  // event.ports[0] corresponds to the MessagePort that was transferred as part of the controlled page's
+                  // call to controller.postMessage(). Therefore, event.ports[0].postMessage() will trigger the onmessage
+                  // handler from the controlled page.
+                  // It's up to you how to structure the messages that you send back; this is just one example.
+                  event.ports[0].postMessage({
+                    error: null,
+                    urls: urls.sort()
+                  });
+                });
+              break;
+              
             default:
                 // This will be handled by the outer .catch().
                 throw 'Unknown command: ' + event.data.command;

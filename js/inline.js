@@ -68,7 +68,11 @@ function cachedUrlList() {
             // Add each cached URL to the list, one by one.
             data.urls.forEach(function(url) {
                 var liElement = document.createElement('li');
-                liElement.textContent = url;
+                var aElement = document.createElement('a');
+                var hrefAtt = document.createAttribute("href");
+                ulAtt.value = url;
+                aElement.textContent = url;
+                liElement.appendChild(aElement);
                 contentsElement.appendChild(liElement);
             });
         });

@@ -67,12 +67,12 @@ function cachedUrlList() {
                 contentsElement.removeChild(contentsElement.firstChild);
             }
             // Add each cached URL to the list, one by one.
-           data.urls.filter(function(url){return url.match(/\/news\/.+-[0-9]+/);}).forEach(function(url) {
-            // data.urls.forEach(function(url) {
+           data.urls.filter(function(url){return url.match(/\/?path=\/news\/.*/g);}).forEach(function(url) {
                 var liElement = document.createElement('li');
                 var aElement = document.createElement('a');
                 var hrefAtt = document.createAttribute("href");
-                ulAtt.value = url;
+                hrefAtt.value = url;
+                aElement.setAttributeNode(hrefAtt);
                 aElement.textContent = url;
                 liElement.appendChild(aElement);
                 contentsElement.appendChild(liElement);

@@ -5,13 +5,16 @@ if ('serviceWorker' in navigator) {
             // If .controller is set, then this page is being actively controlled by the service worker.
             console.log('The service worker is currently handling network operations. ' +
                 'If you reload the page, the images (and everything else) will be served from the service worker\'s cache.');
-    
+
+
             sendMessage({
                 command: 'prefetch',
                 urls: scrapeUrls()
             });
 
+            cachedUrlList();
             addLinkButtons();
+
         } else {
             // If .controller isn't set, then prompt the user to reload the page so that the service worker can take
             // control. Until that happens, the service worker's fetch handler won't be used.
@@ -47,25 +50,31 @@ function cachedUrlList() {
     var buttonAtt = document.createAttribute("id");
     buttonAtt.value = "list-contents";
     buttonElement.setAttributeNode(buttonAtt);
+    buttonElement.textContent = 'Cached URLs';
     var divElement = document.createElement('div');
     var offlineSidebar = document.querySelector('#index-panels');
     //add element to index panels
     divElement.appendChild(buttonElement);
     divElement.appendChild(ulElement);
     offlineSidebar.appendChild(divElement);
+    offlineSidebar.style.float = "left";
     document.querySelector('#list-contents').addEventListener('click', function() {
         sendMessage({
             command: 'keys'
         }).then(function(data) {
-             var contentsElement = document.querySelector('#contents');
+            var contentsElement = document.querySelector('#contents');
             // Clear out the existing items from the list.
             while (contentsElement.firstChild) {
                 contentsElement.removeChild(contentsElement.firstChild);
             }
             // Add each cached URL to the list, one by one.
-            data.urls.forEach(function(url) {
+            data.urls.filter(function(url){return url.match(/\/news\/.+-[0-9]+/);}).forEach(function(url) {
                 var liElement = document.createElement('li');
-                liElement.textContent = url;
+                var aElement = document.createElement('a');
+                var hrefAtt = document.createAttribute("href");
+                ulAtt.value = url;
+                aElement.textContent = url;
+                liElement.appendChild(aElement);
                 contentsElement.appendChild(liElement);
             });
         });

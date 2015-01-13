@@ -36,20 +36,38 @@ self.addEventListener('message', function(event) {
     caches.open(CURRENT_CACHES['read-through']).then(function(cache) {
         switch (event.data.command) {
             case 'prefetch':
-                var urls = event.data.urls,
-                    requests = [];
+                cache.keys().then(function(requests) {
+                    var cachedUrls = requests.map(function(request) {
+                        return request.url;
+                    });
 
-                for (var i = 0; i < urls.length; i++) {
-                    requests.push(new Request(urls[i], {mode: 'no-cors'}));
-                }
-                cache.addAll(requests).then(function() {
+                    var urls = event.data.urls,
+                        requests = [];
+
+                    console.log('=====CACHED URLS======');
+                    console.log(cachedUrls);
+
                     for (var i = 0; i < urls.length; i++) {
-                        console.log('URL fetched and cached:', urls[i]);
+                        var url = urls[i];
+                        if (cachedUrls.indexOf(url) === -1) {
+                            console.log('Preparing to fetch: ' + url)
+                            requests.push(new Request(url, {mode: 'no-cors'}));
+
+                        } else {
+                            console.log('URL already cached, not reloading: ' + url)
+                        }
                     }
-                    event.ports[0].postMessage({
-                        error: null
+
+                    cache.addAll(requests).then(function() {
+                        for (var i = 0; i < urls.length; i++) {
+                            console.log('URL fetched and cached:', urls[i]);
+                        }
+                        event.ports[0].postMessage({
+                            error: null
+                        });
                     });
                 });
+
                 break;
 
              case 'keys':
@@ -68,7 +86,7 @@ self.addEventListener('message', function(event) {
                   });
                 });
               break;
-              
+
             default:
                 // This will be handled by the outer .catch().
                 throw 'Unknown command: ' + event.data.command;

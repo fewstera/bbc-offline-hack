@@ -5,13 +5,13 @@ if ('serviceWorker' in navigator) {
             // If .controller is set, then this page is being actively controlled by the service worker.
             console.log('The service worker is currently handling network operations. ' +
                 'If you reload the page, the images (and everything else) will be served from the service worker\'s cache.');
-
-            addLinkButtons();
-
+    
             sendMessage({
                 command: 'prefetch',
                 urls: scrapeUrls()
             });
+
+            addLinkButtons();
         } else {
             // If .controller isn't set, then prompt the user to reload the page so that the service worker can take
             // control. Until that happens, the service worker's fetch handler won't be used.
@@ -60,7 +60,7 @@ function cachedUrlList() {
              var contentsElement = document.querySelector('#contents');
             // Clear out the existing items from the list.
             while (contentsElement.firstChild) {
-            contentsElement.removeChild(contentsElement.firstChild);
+                contentsElement.removeChild(contentsElement.firstChild);
             }
             // Add each cached URL to the list, one by one.
             data.urls.forEach(function(url) {
@@ -68,8 +68,8 @@ function cachedUrlList() {
                 liElement.textContent = url;
                 contentsElement.appendChild(liElement);
             });
-        }
-    }
+        });
+    });
 }
 
 function sendMessage(message) {
@@ -107,12 +107,12 @@ function scrapeUrls() {
 		var selectedHrefs = document.querySelectorAll(selectors[i] + ' a[href^="/?path"]');
 		for (var x = 0; x < selectedHrefs.length; x++) {
 			var url = selectedHrefs[x].href;
-			console.log(url);
 			if (urlsScraped.indexOf(url) === -1) {
 				urlsScraped.push(url);
 			}
 		}
 	}
+    console.log(urlsScraped);
 
 	return urlsScraped;
 }

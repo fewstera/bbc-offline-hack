@@ -1,6 +1,4 @@
 <?php
-    echo "I'm running";exit;
-
     $pullPath = isset($_GET['path']) ? $_GET['path'] : '/';
 
     $ch = curl_init();

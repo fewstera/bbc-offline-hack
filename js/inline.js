@@ -6,6 +6,8 @@ if ('serviceWorker' in navigator) {
             console.log('The service worker is currently handling network operations. ' +
                 'If you reload the page, the images (and everything else) will be served from the service worker\'s cache.');
 
+            addLinkButtons();
+
             sendMessage({
                 command: 'prefetchAll',
                 urls: scrapeUrls()
@@ -110,4 +112,35 @@ function scrapeUrls() {
 			}
 		}
 	}
+}
+
+function addLinkButtons() {
+    // Add 'save for later' buttons to each link on the page
+    var links = document.querySelectorAll('#page a');
+    var button = document.createElement('a');
+
+    [].slice.call(links).filter(function(link) {
+        return link.href.match(/\/news\/.+-[0-9]+/);
+    }).forEach(function(link) {
+        var b = button.cloneNode();
+
+        b.title = 'Download this article to read later';
+        b.innerHTML = ' [ + ]'.replace(' ', '&nbsp');
+        b.addEventListener('click', addLinkToCache);
+
+        link.appendChild(b);
+    });
+
+    function addLinkToCache(event) {
+        var link = event.target;
+
+        sendMessage({
+            command: 'prefetch',
+            urls: [link.href]
+        }).then(function() {
+            link.textContent = ' [ ✓ ]';
+        });
+
+        event.preventDefault();
+    }
 }

@@ -6,12 +6,9 @@ if ('serviceWorker' in navigator) {
             console.log('The service worker is currently handling network operations. ' +
                 'If you reload the page, the images (and everything else) will be served from the service worker\'s cache.');
 
-            // REEL SHIT
-            urlsToPrefetch().forEach(function(url) {
-                sendMessage({
-                    command: 'prefetch',
-                    url: url
-                });
+            sendMessage({
+                command: 'prefetchAll',
+                urls: scrapeUrls()
             });
         } else {
             // If .controller isn't set, then prompt the user to reload the page so that the service worker can take
@@ -28,14 +25,14 @@ if ('serviceWorker' in navigator) {
     console.log('Service workers are not supported in the current browser.');
 }
 
-function urlsToPrefetch() {
-    var links = self.document.querySelectorAll('a');
-    var regex = new RegExp('^' + self.location.origin);
+// function urlsToPrefetch() {
+//     var links = self.document.querySelectorAll('a');
+//     var regex = new RegExp('^' + self.location.origin);
 
-    return [].slice.call(links).map(function(link) {
-        return link.href.replace(regex, '');
-    });
-}
+//     return [].slice.call(links).map(function(link) {
+//         return link.href.replace(regex, '');
+//     });
+// }
 
 function cachedUrlList() {
     //make ul element
@@ -93,4 +90,24 @@ function sendMessage(message) {
         // See https://html.spec.whatwg.org/multipage/workers.html#dom-worker-postmessage
         navigator.serviceWorker.controller.postMessage(message, [messageChannel.port2]);
     });
+}
+
+function scrapeUrls() {
+	var selectors = [
+		'#index-panels .panel-1 .column--single',
+		'#index-panels .container--primary-and-secondary-columns .column--primary .container-pigeon',
+		'#index-panels .panel-1 .container--primary-and-secondary-columns div.column--primary .distinct-component-group.container-macaw'
+	];
+
+	var urlsScraped = [];
+
+	for (var i = 0; i < selectors.length; i++) {
+		var selectedHrefs = document.querySelectorAll(selectors[i] + ' a[href^="/fetcher"]');
+		for (var x = 0; x < selectedHrefs.length; x++) {
+			var url = selectedHrefs[x].href;
+			if (urlsScraped.indexOf(url) === -1) {
+				urlsScraped.push(url);
+			}
+		}
+	}
 }

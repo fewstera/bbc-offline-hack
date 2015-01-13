@@ -6,6 +6,7 @@ if ('serviceWorker' in navigator) {
             console.log('The service worker is currently handling network operations. ' +
                 'If you reload the page, the images (and everything else) will be served from the service worker\'s cache.');
 
+            cachedUrlList();
             addLinkButtons();
 
             sendMessage({
@@ -47,6 +48,7 @@ function cachedUrlList() {
     var buttonAtt = document.createAttribute("id");
     buttonAtt.value = "list-contents";
     buttonElement.setAttributeNode(buttonAtt);
+    buttonElement.textContent = 'Cached URLs';
     var divElement = document.createElement('div');
     var offlineSidebar = document.querySelector('#index-panels');
     //add element to index panels
@@ -68,8 +70,8 @@ function cachedUrlList() {
                 liElement.textContent = url;
                 contentsElement.appendChild(liElement);
             });
-        }
-    }
+        });
+    });
 }
 
 function sendMessage(message) {

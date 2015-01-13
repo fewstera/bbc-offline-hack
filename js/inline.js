@@ -43,6 +43,10 @@ function cachedUrlList() {
     var ulAtt = document.createAttribute("id");
     ulAtt.value = "contents";
     ulElement.setAttributeNode(ulAtt);
+    //hackiest inline style
+    var style = document.createElement('style');
+    style.setAttribute("style", "float:left;");
+    divElement.appendChild(style);
     //make div "list" element
     var buttonElement = document.createElement('button');
     var buttonAtt = document.createAttribute("id");

@@ -60,13 +60,13 @@ function cachedUrlList() {
         sendMessage({
             command: 'keys'
         }).then(function(data) {
-             var contentsElement = document.querySelector('#contents');
+            var contentsElement = document.querySelector('#contents');
             // Clear out the existing items from the list.
             while (contentsElement.firstChild) {
             contentsElement.removeChild(contentsElement.firstChild);
             }
             // Add each cached URL to the list, one by one.
-            data.urls.forEach(function(url) {
+            data.urls.filter(function(url){return url.match(/\/news\/.+-[0-9]+/);}).forEach(function(url) {
                 var liElement = document.createElement('li');
                 var aElement = document.createElement('a');
                 var hrefAtt = document.createAttribute("href");
@@ -75,6 +75,7 @@ function cachedUrlList() {
                 liElement.appendChild(aElement);
                 contentsElement.appendChild(liElement);
             });
+
         });
     });
 }

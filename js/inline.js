@@ -57,7 +57,6 @@ function cachedUrlList() {
     divElement.appendChild(buttonElement);
     divElement.appendChild(ulElement);
     offlineSidebar.appendChild(divElement);
-    offlineSidebar.style.float = "left";
     document.querySelector('#list-contents').addEventListener('click', function() {
         sendMessage({
             command: 'keys'
@@ -68,7 +67,8 @@ function cachedUrlList() {
                 contentsElement.removeChild(contentsElement.firstChild);
             }
             // Add each cached URL to the list, one by one.
-            data.urls.filter(function(url){return url.match(/\/news\/.+-[0-9]+/);}).forEach(function(url) {
+           data.urls.filter(function(url){return url.match(/\/news\/.+-[0-9]+/);}).forEach(function(url) {
+            // data.urls.forEach(function(url) {
                 var liElement = document.createElement('li');
                 var aElement = document.createElement('a');
                 var hrefAtt = document.createAttribute("href");

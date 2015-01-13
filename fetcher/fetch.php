@@ -8,10 +8,16 @@
 	$returnMarkup = curl_exec($ch);
 	curl_close($ch);
 
+
+
 	$parsedMarkup = str_replace('href="http://www.bbc.co.uk', 'href="/fetcher/fetch.php?path=', $returnMarkup);
 	$parsedMarkup = str_replace('href="/', 'href="/fetcher/fetch.php?path=/', $parsedMarkup);
-	$hideCookieBar = "<style>#bbccookies{display: none !important;}</style></body>";
-	$parsedMarkup = str_replace('</body>', $hideCookieBar, $parsedMarkup);
+
+	/* Hack our things into the page */
+	$hideCookieBar = "<style>#bbccookies{display: none !important;}</style>";
+	$inlineJs = "<script>".file_get_contents('../js/inline.js')."</script>";
+	$inlineHack = $hideCookieBar.$inlineJs."</body>";
+	$parsedMarkup = str_replace('</body>', $inlineHack, $parsedMarkup);
 
 	echo $parsedMarkup;
 

@@ -43,10 +43,6 @@ function cachedUrlList() {
     var ulAtt = document.createAttribute("id");
     ulAtt.value = "contents";
     ulElement.setAttributeNode(ulAtt);
-    //hackiest inline style
-    var style = document.createElement('style');
-    style.setAttribute("style", "float:left;");
-    divElement.appendChild(style);
     //make div "list" element
     var buttonElement = document.createElement('button');
     var buttonAtt = document.createAttribute("id");
@@ -59,6 +55,7 @@ function cachedUrlList() {
     divElement.appendChild(buttonElement);
     divElement.appendChild(ulElement);
     offlineSidebar.appendChild(divElement);
+    offlineSidebar.style.float = "left";
     document.querySelector('#list-contents').addEventListener('click', function() {
         sendMessage({
             command: 'keys'

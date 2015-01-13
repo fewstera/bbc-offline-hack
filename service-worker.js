@@ -5,6 +5,8 @@ var CURRENT_CACHES = {
     'read-through': 'read-through-cache-v' + CACHE_VERSION
 };
 
+console.log(self);
+
 self.addEventListener('activate', function(event) {
     // Delete all caches that aren't named in CURRENT_CACHES.
     // While there is only one cache in this example, the same logic will handle the case where
@@ -34,21 +36,21 @@ self.addEventListener('message', function(event) {
     caches.open(CURRENT_CACHES['read-through']).then(function(cache) {
         switch (event.data.command) {
             case 'prefetch':
-                // If event.data.url isn't a valid URL, new Request() will throw a TypeError which will be handled
-                // by the outer .catch().
-                // Hardcode {mode: 'no-cors} since the default for new Requests constructed from strings is to require
-                // CORS, and we don't have any way of knowing whether an arbitrary URL that a user entered supports CORS.
-                var request = new Request(event.data.url, {mode: 'no-cors'});
-                cache.add(request).then(function() {
-                    console.log('URL fetched and cached:', event.data.url);
+                var urls = event.data.urls,
+                    requests = [];
 
+                for (var i = 0; i < urls.length; i++) {
+                    requests.push(new Request(urls[i], {mode: 'no-cors'}));
+                }
+                cache.addAll(requests).then(function() {
+                    for (var i = 0; i < urls.length; i++) {
+                        console.log('URL fetched and cached:', urls[i]);
+                    }
                     event.ports[0].postMessage({
                         error: null
                     });
                 });
-
                 break;
-
             default:
                 // This will be handled by the outer .catch().
                 throw 'Unknown command: ' + event.data.command;

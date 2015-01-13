@@ -7,7 +7,7 @@ if ('serviceWorker' in navigator) {
                 'If you reload the page, the images (and everything else) will be served from the service worker\'s cache.');
 
             sendMessage({
-                command: 'prefetchAll',
+                command: 'prefetch',
                 urls: scrapeUrls()
             });
         } else {
@@ -66,12 +66,17 @@ function scrapeUrls() {
 	var urlsScraped = [];
 
 	for (var i = 0; i < selectors.length; i++) {
-		var selectedHrefs = document.querySelectorAll(selectors[i] + ' a[href^="/fetcher"]');
+		var selectedHrefs = document.querySelectorAll(selectors[i] + ' a[href^="/?path"]');
 		for (var x = 0; x < selectedHrefs.length; x++) {
 			var url = selectedHrefs[x].href;
+			console.log(url);
 			if (urlsScraped.indexOf(url) === -1) {
 				urlsScraped.push(url);
 			}
 		}
 	}
+
+	console.log(urlsScraped);
+
+	return urlsScraped;
 }

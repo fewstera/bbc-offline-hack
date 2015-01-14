@@ -159,11 +159,28 @@ function addLinkButtons() {
         if (cached) {
             button.title = 'This article is available offline';
             button.textContent = ' [ ✓ ]';
+            button.removeEventListener('click', addLinkToCache);
         } else {
             button.title = 'Download this article to read later';
             button.textContent = ' [ + ]';
+            button.addEventListener('click', addLinkToCache);
         }
     };
+
+    function addLinkToCache(event) {
+        var link = event.target;
+
+        link.textContent = ' [...]';
+
+        sendMessage({
+            command: 'prefetch',
+            urls: [link.parentNode.href]
+        }).then(function() {
+            toggleButtonCached(link, true);
+        });
+
+        event.preventDefault();
+    }
 
     sendMessage({
         command: 'keys'
@@ -185,25 +202,9 @@ function addLinkButtons() {
                 toggleButtonCached(b, true);
             } else {
                 toggleButtonCached(b, false);
-                b.addEventListener('click', addLinkToCache);
             }
 
             link.appendChild(b);
         });
-
-        function addLinkToCache(event) {
-            var link = event.target;
-
-            link.textContent = ' [...]';
-
-            sendMessage({
-                command: 'prefetch',
-                urls: [link.parentNode.href]
-            }).then(function() {
-                toggleButtonCached(link, true);
-            });
-
-            event.preventDefault();
-        }
     });
 }

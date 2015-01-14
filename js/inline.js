@@ -30,23 +30,49 @@ if ('serviceWorker' in navigator) {
 }
 
 function cachedUrlList() {
-    //make ul element
+
+// most-popular__title
+
+    var wrapper = document.createElement('div');
+    var wrapperClass = document.createAttribute("class");
+    wrapperClass.value = "most-popular";
+    wrapper.setAttributeNode(wrapperClass);
+    var title = document.createElement('h2');
+    var titleClass = document.createAttribute("class");
+    titleClass.value = "most-popular__title";
+    title.setAttributeNode(titleClass);
+    title.textContent = "Offline Content";
+    wrapper.appendChild(title);
+
     var ulElement = document.createElement('ul');
     var ulAtt = document.createAttribute("id");
     ulAtt.value = "contents";
     ulElement.setAttributeNode(ulAtt);
-    //make div "list" element
+    var ulClass = document.createAttribute("class");
+    ulClass.value = "most-popular__list panel-read collection";
+    ulElement.setAttributeNode(ulClass);
+
     var buttonElement = document.createElement('button');
     var buttonAtt = document.createAttribute("id");
     buttonAtt.value = "list-contents";
     buttonElement.setAttributeNode(buttonAtt);
-    buttonElement.textContent = 'Cached URLs';
-    var divElement = document.createElement('div');
-    var offlineSidebar = document.querySelector('#index-panels');
+
+    var buttonAtt2 = document.createAttribute("class");
+    buttonAtt2.value = "most-popular-by-day__subtitle";
+    buttonElement.setAttributeNode(buttonAtt2);
+    buttonElement.textContent = "Show Url's";
+
+    var containerDiv = document.createElement('div');
+    var containerDivClass = document.createAttribute("class");
+    containerDivClass.value = "most-popular-by-day__list-outer";
+    containerDiv.setAttributeNode(containerDivClass);
+
+    var offlineSidebar = document.querySelector('.column--secondary');
     //add element to index panels
-    divElement.appendChild(buttonElement);
-    divElement.appendChild(ulElement);
-    offlineSidebar.appendChild(divElement);
+    containerDiv.appendChild(buttonElement);
+    containerDiv.appendChild(ulElement);
+    wrapper.appendChild(containerDiv);
+    offlineSidebar.appendChild(wrapper);
     document.querySelector('#list-contents').addEventListener('click', function() {
         sendMessage({
             command: 'keys'
@@ -57,13 +83,30 @@ function cachedUrlList() {
                 contentsElement.removeChild(contentsElement.firstChild);
             }
             // Add each cached URL to the list, one by one.
-           data.urls.filter(function(url){return url.match(/\/?path=\/news\/.*/g);}).forEach(function(url) {
+            filterArticleLinks(data.urls).forEach(function(url) {
+
                 var liElement = document.createElement('li');
+                var liClass = document.createAttribute("class");
+                liClass.value = "most-popular-list-item__link ";
+                liElement.setAttributeNode(liClass);
                 var aElement = document.createElement('a');
                 var hrefAtt = document.createAttribute("href");
                 hrefAtt.value = url;
                 aElement.setAttributeNode(hrefAtt);
-                aElement.textContent = url;
+                var regex = new RegExp('^' + self.location.origin);
+                var urlHref = url.replace(regex, '');
+                var currentArticle = document.querySelector('#page a[href="'+urlHref+'"]');
+                var currentArticleTitle = currentArticle.textContent.replace('[ + ]', '');
+
+                var containerDiv = document.createElement('div');
+                var containerDivClass = document.createAttribute("class");
+                containerDivClass.value = "most-popular-by-day__list-outer";
+                containerDiv.setAttributeNode(containerDivClass);
+                
+                var urlTitleClass = document.createAttribute("class");
+                urlTitleClass.value = "most-popular-list-item__headline";
+                aElement.setAttributeNode(urlTitleClass);
+                aElement.textContent = currentArticleTitle;
                 liElement.appendChild(aElement);
                 contentsElement.appendChild(liElement);
             });
@@ -106,7 +149,8 @@ function urlsToPrefetch() {
 
 function filterArticleLinks(links) {
     return [].slice.call(links).filter(function(link) {
-        return link.href.match(/\/news\/[^0-9]+-[0-9]+/);
+        var url = (typeof link === 'string') ? link : link.href;
+        return url.match(/\/news\/[^0-9]+-[0-9]+/);
     });
 }
 

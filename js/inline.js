@@ -10,6 +10,7 @@ if ('serviceWorker' in navigator) {
                 command: 'prefetch',
                 urls: urlsToPrefetch()
             }).then(function() {
+                prefetchMainImages();
                 addLinkButtons();
             });
 
@@ -102,7 +103,7 @@ function cachedUrlList() {
                 var containerDivClass = document.createAttribute("class");
                 containerDivClass.value = "most-popular-by-day__list-outer";
                 containerDiv.setAttributeNode(containerDivClass);
-                
+
                 var urlTitleClass = document.createAttribute("class");
                 urlTitleClass.value = "most-popular-list-item__headline";
                 aElement.setAttributeNode(urlTitleClass);
@@ -205,6 +206,44 @@ function addLinkButtons() {
             }
 
             link.appendChild(b);
+        });
+    });
+}
+
+function prefetchMainImages() {
+    sendMessage({
+        command: 'keys'
+    }).then(function(data) {
+        var promises = [];
+
+        filterArticleLinks(data.urls).forEach(function(url) {
+            var p = new Promise(function(resolve, reject) {
+                $.get(url).success(function(html) {
+                    var $html = $(html);
+                    var image = $('figure img', $html).first();
+
+                    if (image.length) {
+                        resolve(image.attr('src').replace('/200/', '/660/'));
+                    } else {
+                        resolve(null);
+                    }
+                });
+            });
+
+            promises.push(p);
+        });
+
+        Promise.all(promises).then(function(imgSrcs) {
+            imgSrcs = imgSrcs.filter(function(src) {
+                return src !== null;
+            });
+
+            sendMessage({
+                command: 'prefetch',
+                urls: imgSrcs
+            }).then(function() {
+                console.log('Prefetched main images for cached articles');
+            });
         });
     });
 }

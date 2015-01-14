@@ -179,6 +179,7 @@ function addLinkButtons() {
             urls: [link.parentNode.href]
         }).then(function() {
             toggleButtonCached(link, true);
+            cachedUrlList();
         });
 
         event.preventDefault();
@@ -244,7 +245,6 @@ function prefetchMainImages() {
                 urls: imgSrcs
             }).then(function() {
                 toggleButtonCached(link, true);
-                cachedUrlList();
                 console.log('Prefetched main images for cached articles');
             });
         });

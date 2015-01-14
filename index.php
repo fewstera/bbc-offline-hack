@@ -1,12 +1,8 @@
 <?php
-    $pullPath = isset($_GET['path']) ? $_GET['path'] : '/';
-
     $ch = curl_init();
-    curl_setopt($ch,CURLOPT_URL, 'http://m.bbc.co.uk' . $pullPath);
+    curl_setopt($ch,CURLOPT_URL, 'http://m.bbc.co.uk' . $_SERVER['REQUEST_URI']);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt ($ch, CURLOPT_COOKIEFILE, 'cookie.txt');
-    curl_setopt ($ch, CURLOPT_COOKIEJAR, 'cookie.txt');
     curl_setopt($ch, CURLOPT_TIMEOUT, 2);
     $returnMarkup = curl_exec($ch);
     curl_close($ch);
@@ -21,4 +17,3 @@
     $parsedMarkup = str_replace('</body>', $inlineHack, $parsedMarkup);
 
 	echo $parsedMarkup;
-?>

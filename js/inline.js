@@ -8,11 +8,12 @@ if ('serviceWorker' in navigator) {
 
             sendMessage({
                 command: 'prefetch',
-                urls: scrapeUrls()
+                urls: urlsToPrefetch()
+            }).then(function() {
+                addLinkButtons();
             });
 
             cachedUrlList();
-            addLinkButtons();
         } else {
             // If .controller isn't set, then prompt the user to reload the page so that the service worker can take
             // control. Until that happens, the service worker's fetch handler won't be used.
@@ -92,27 +93,15 @@ function sendMessage(message) {
     });
 }
 
-function scrapeUrls() {
-	var selectors = [
-		'#index-panels .panel-1 .column--single a',
-		'#index-panels .container--primary-and-secondary-columns .column--primary .container-pigeon a',
-		'#index-panels .panel-1 .container--primary-and-secondary-columns div.column--primary .distinct-component-group.container-macaw a'
-	];
+function urlsToPrefetch() {
+    var links = self.document.querySelectorAll('#page a[href^="/news/"]');
 
-	var urlsScraped = [];
-
-    selectors.forEach(function(selector) {
-		var selectedLinks = filterArticleLinks(document.querySelectorAll(selector));
-
-        selectedLinks.forEach(function(link) {
-            if (urlsScraped.indexOf(link.href) === -1) {
-                urlsScraped.push(link.href);
-            }
-        });
-    });
-
-    console.log(urlsScraped);
-	return urlsScraped;
+    return filterArticleLinks(links).map(function(link) {
+        return link.href;
+    }).filter(function(url, i, arr) {
+        // Filter for unique URLs
+        return arr.indexOf(url) === i;
+    }).slice(0, 10);
 }
 
 function filterArticleLinks(links) {
@@ -121,31 +110,59 @@ function filterArticleLinks(links) {
     });
 }
 
+function nbsp(string) {
+    return string.replace(' ', '&nbsp;');
+}
+
 function addLinkButtons() {
-    // Add 'save for later' buttons to each link on the page
-    var links = document.querySelectorAll('#page a');
-    var button = document.createElement('a');
+    var toggleButtonCached = function(button, cached) {
+        if (cached) {
+            button.title = 'This article is available offline';
+            button.innerHTML = nbsp(' [ ✓ ]');
+        } else {
+            button.title = 'Download this article to read later';
+            button.innerHTML = nbsp(' [ + ]');
+        }
+    };
 
-    filterArticleLinks(links).forEach(function(link) {
-        var b = button.cloneNode();
+    sendMessage({
+        command: 'keys'
+    }).then(function(data) {
+        // Add 'save for later' buttons to each link on the page
+        var links = document.querySelectorAll('#page a');
 
-        b.title = 'Download this article to read later';
-        b.innerHTML = ' [ + ]'.replace(' ', '&nbsp');
-        b.addEventListener('click', addLinkToCache);
+        filterArticleLinks(links).forEach(function(link) {
+            var b = link.querySelector('.add-to-cache');
 
-        link.appendChild(b);
-    });
+            if (!b) {
+                b = document.createElement('a');
+                b.className = 'add-to-cache';
+            }
 
-    function addLinkToCache(event) {
-        var link = event.target;
+            if (data.urls.indexOf(link.href) !== -1) {
+                // Link is already cached
+                toggleButtonCached(b, true);
+            } else {
+                toggleButtonCached(b, false);
+                b.addEventListener('click', addLinkToCache);
+            }
 
-        sendMessage({
-            command: 'prefetch',
-            urls: [link.href]
-        }).then(function() {
-            link.textContent = ' [ ✓ ]';
+            link.appendChild(b);
         });
 
-        event.preventDefault();
-    }
+        function addLinkToCache(event) {
+            var link = event.target;
+
+            link.innerHTML = nbsp(' [...]');
+
+            sendMessage({
+                command: 'prefetch',
+                urls: [link.parentNode.href]
+            }).then(function() {
+                toggleButtonCached(link, true);
+            });
+
+            event.preventDefault();
+        }
+    });
 }

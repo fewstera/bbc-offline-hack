@@ -41,27 +41,13 @@ self.addEventListener('message', function(event) {
                         return request.url;
                     });
 
-                    var urls = event.data.urls,
-                        requests = [];
+                    var urls = event.data.urls.filter(function(url) {
+                        return cachedUrls.indexOf(url) === -1;
+                    });
 
-                    console.log('=====CACHED URLS======');
-                    console.log(cachedUrls);
-
-                    for (var i = 0; i < urls.length; i++) {
-                        var url = urls[i];
-                        if (cachedUrls.indexOf(url) === -1) {
-                            console.log('Preparing to fetch: ' + url)
-                            requests.push(new Request(url, {mode: 'no-cors'}));
-
-                        } else {
-                            console.log('URL already cached, not reloading: ' + url)
-                        }
-                    }
-
-                    cache.addAll(requests).then(function() {
-                        for (var i = 0; i < urls.length; i++) {
-                            console.log('URL fetched and cached:', urls[i]);
-                        }
+                    cache.addAll(urls.map(function(url) {
+                        return new Request(url, { mode: 'no-cors' });
+                    })).then(function() {
                         event.ports[0].postMessage({
                             error: null
                         });

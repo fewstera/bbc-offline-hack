@@ -1,38 +1,4 @@
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js', { scope: './' }).then(function() {
-        // Registration was successful. Now, check to see whether the service worker is controlling the page.
-        if (navigator.serviceWorker.controller) {
-            // If .controller is set, then this page is being actively controlled by the service worker.
-            console.log('The service worker is currently handling network operations. ' +
-                'If you reload the page, the images (and everything else) will be served from the service worker\'s cache.');
-
-            sendMessage({
-                command: 'prefetch',
-                urls: urlsToPrefetch()
-            }).then(function() {
-                addLinkButtons();
-            });
-
-            cachedUrlList();
-        } else {
-            // If .controller isn't set, then prompt the user to reload the page so that the service worker can take
-            // control. Until that happens, the service worker's fetch handler won't be used.
-            console.log('Please reload this page to allow the service worker to handle network operations.');
-        }
-    }).catch(function(error) {
-        // Something went wrong during registration. The service-worker.js file
-        // might be unavailable or contain a syntax error.
-        console.error(error);
-    });
-} else {
-    // The current browser doesn't support service workers.
-    console.log('Service workers are not supported in the current browser.');
-}
-
-function cachedUrlList() {
-
-// most-popular__title
-
+function setUpOfflineContentBar(){
     var wrapper = document.createElement('div');
     var wrapperClass = document.createAttribute("class");
     wrapperClass.value = "most-popular";
@@ -52,64 +18,100 @@ function cachedUrlList() {
     ulClass.value = "most-popular__list panel-read collection";
     ulElement.setAttributeNode(ulClass);
 
-    var buttonElement = document.createElement('button');
-    var buttonAtt = document.createAttribute("id");
-    buttonAtt.value = "list-contents";
-    buttonElement.setAttributeNode(buttonAtt);
-
-    var buttonAtt2 = document.createAttribute("class");
-    buttonAtt2.value = "most-popular-by-day__subtitle";
-    buttonElement.setAttributeNode(buttonAtt2);
-    buttonElement.textContent = "Show Url's";
-
     var containerDiv = document.createElement('div');
     var containerDivClass = document.createAttribute("class");
     containerDivClass.value = "most-popular-by-day__list-outer";
     containerDiv.setAttributeNode(containerDivClass);
 
     var offlineSidebar = document.querySelector('.column--secondary');
-    //add element to index panels
-    containerDiv.appendChild(buttonElement);
     containerDiv.appendChild(ulElement);
     wrapper.appendChild(containerDiv);
     offlineSidebar.appendChild(wrapper);
-    document.querySelector('#list-contents').addEventListener('click', function() {
-        sendMessage({
-            command: 'keys'
-        }).then(function(data) {
-            var contentsElement = document.querySelector('#contents');
-            // Clear out the existing items from the list.
-            while (contentsElement.firstChild) {
-                contentsElement.removeChild(contentsElement.firstChild);
-            }
-            // Add each cached URL to the list, one by one.
-            filterArticleLinks(data.urls).forEach(function(url) {
+};
 
-                var liElement = document.createElement('li');
-                var liClass = document.createAttribute("class");
-                liClass.value = "most-popular-list-item__link ";
-                liElement.setAttributeNode(liClass);
-                var aElement = document.createElement('a');
-                var hrefAtt = document.createAttribute("href");
-                hrefAtt.value = url;
-                aElement.setAttributeNode(hrefAtt);
-                var regex = new RegExp('^' + self.location.origin);
-                var urlHref = url.replace(regex, '');
-                var currentArticle = document.querySelector('#page a[href="'+urlHref+'"]');
-                var currentArticleTitle = currentArticle.textContent.replace('[ + ]', '');
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js', { scope: './' }).then(function() {
+        // Registration was successful. Now, check to see whether the service worker is controlling the page.
+        if (navigator.serviceWorker.controller) {
+            // If .controller is set, then this page is being actively controlled by the service worker.
+            console.log('The service worker is currently handling network operations. ' +
+                'If you reload the page, the images (and everything else) will be served from the service worker\'s cache.');
 
-                var containerDiv = document.createElement('div');
-                var containerDivClass = document.createAttribute("class");
-                containerDivClass.value = "most-popular-by-day__list-outer";
-                containerDiv.setAttributeNode(containerDivClass);
-                
-                var urlTitleClass = document.createAttribute("class");
-                urlTitleClass.value = "most-popular-list-item__headline";
-                aElement.setAttributeNode(urlTitleClass);
-                aElement.textContent = currentArticleTitle;
-                liElement.appendChild(aElement);
-                contentsElement.appendChild(liElement);
+            sendMessage({
+                command: 'prefetch',
+                urls: urlsToPrefetch()
+            }).then(function() {
+                addLinkButtons();
+                setUpOfflineContentBar();
+                cachedUrlList();
             });
+
+        } else {
+            // If .controller isn't set, then prompt the user to reload the page so that the service worker can take
+            // control. Until that happens, the service worker's fetch handler won't be used.
+            console.log('Please reload this page to allow the service worker to handle network operations.');
+        }
+    }).catch(function(error) {
+        // Something went wrong during registration. The service-worker.js file
+        // might be unavailable or contain a syntax error.
+        console.error(error);
+    });
+} else {
+    // The current browser doesn't support service workers.
+    console.log('Service workers are not supported in the current browser.');
+}
+
+function cachedUrlList() {
+    sendMessage({
+        command: 'keys'
+    }).then(function(data) {
+        var contentsElement = document.querySelector('#contents');
+        // Clear out the existing items from the list.
+        while (contentsElement.firstChild) {
+            contentsElement.removeChild(contentsElement.firstChild);
+        }
+        // Add each cached URL to the list, one by one.
+        filterArticleLinks(data.urls).forEach(function(url) {
+
+            var liElement = document.createElement('li');
+            var liClass = document.createAttribute("class");
+            liClass.value = "most-popular-list-item__link ";
+            liElement.setAttributeNode(liClass);
+            var aElement = document.createElement('a');
+            var hrefAtt = document.createAttribute("href");
+            hrefAtt.value = url;
+            aElement.setAttributeNode(hrefAtt);
+            var regex = new RegExp('^' + self.location.origin);
+            var urlHref = url.replace(regex, '');
+            var currentArticle = document.querySelector('#page a[href="'+urlHref+'"]');
+            var currentArticleTitle = $(currentArticle).clone().children().remove().end().text();
+            console.log(currentArticleTitle);
+
+            var sectionElement = document.createElement('a');
+            var sectionhrefAtt = document.createAttribute("href");
+            var section = currentArticle.parentNode.parentNode.querySelector('.mini-info-list__section');
+            
+            if (section) {
+                sectionhrefAtt.value = section.href;
+                sectionElement.setAttributeNode(sectionhrefAtt);
+                sectionElement.textContent = section.textContent;
+                var sectionClassAtt = document.createAttribute("class");
+                sectionClassAtt.value = 'mini-info-list__section';
+                sectionElement.setAttributeNode(sectionClassAtt);
+            }
+
+            var containerDiv = document.createElement('div');
+            var containerDivClass = document.createAttribute("class");
+            containerDivClass.value = "most-popular-by-day__list-outer";
+            containerDiv.setAttributeNode(containerDivClass);
+            
+            var urlTitleClass = document.createAttribute("class");
+            urlTitleClass.value = "most-popular-list-item__headline";
+            aElement.setAttributeNode(urlTitleClass);
+            aElement.textContent = currentArticleTitle;
+            liElement.appendChild(aElement);
+            liElement.appendChild(sectionElement);
+            contentsElement.appendChild(liElement);
         });
     });
 }
@@ -201,6 +203,7 @@ function addLinkButtons() {
                 urls: [link.parentNode.href]
             }).then(function() {
                 toggleButtonCached(link, true);
+                cachedUrlList();
             });
 
             event.preventDefault();

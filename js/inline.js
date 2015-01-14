@@ -110,18 +110,14 @@ function filterArticleLinks(links) {
     });
 }
 
-function nbsp(string) {
-    return string.replace(' ', '&nbsp;');
-}
-
 function addLinkButtons() {
     var toggleButtonCached = function(button, cached) {
         if (cached) {
             button.title = 'This article is available offline';
-            button.innerHTML = nbsp(' [ ✓ ]');
+            button.textContent = ' [ ✓ ]';
         } else {
             button.title = 'Download this article to read later';
-            button.innerHTML = nbsp(' [ + ]');
+            button.textContent = ' [ + ]';
         }
     };
 
@@ -137,6 +133,7 @@ function addLinkButtons() {
             if (!b) {
                 b = document.createElement('a');
                 b.className = 'add-to-cache';
+                b.setAttribute('style', 'white-space: nowrap;')
             }
 
             if (data.urls.indexOf(link.href) !== -1) {
@@ -153,7 +150,7 @@ function addLinkButtons() {
         function addLinkToCache(event) {
             var link = event.target;
 
-            link.innerHTML = nbsp(' [...]');
+            link.textContent = ' [...]';
 
             sendMessage({
                 command: 'prefetch',

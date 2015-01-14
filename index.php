@@ -7,8 +7,7 @@
     $returnMarkup = curl_exec($ch);
     curl_close($ch);
 
-    $parsedMarkup = str_replace('href="/', 'href="/?path=/', $returnMarkup);
-    $parsedMarkup = str_replace('href="http://www.bbc.co.uk', 'href="/?path=', $parsedMarkup);
+    $parsedMarkup = str_replace('href="http://www.bbc.co.uk', 'href="/', $parsedMarkup);
 
     /* Hack our things into the page */
     $hideCookieBar = "<style>#bbccookies{display: none !important;}</style>";

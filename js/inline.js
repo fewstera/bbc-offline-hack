@@ -113,7 +113,7 @@ function scrapeUrls() {
 	var urlsScraped = [];
 
 	for (var i = 0; i < selectors.length; i++) {
-		var selectedHrefs = document.querySelectorAll(selectors[i] + ' a[href^="/?path"]');
+		var selectedHrefs = document.querySelectorAll(selectors[i] + ' a[href^="/news"]');
 		for (var x = 0; x < selectedHrefs.length; x++) {
 			var url = selectedHrefs[x].href;
 			if (urlsScraped.indexOf(url) === -1) {
@@ -121,7 +121,6 @@ function scrapeUrls() {
 			}
 		}
 	}
-    console.log(urlsScraped);
 
 	return urlsScraped;
 }

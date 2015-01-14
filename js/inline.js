@@ -1,11 +1,10 @@
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js', {scope: './'}).then(function() {
+    navigator.serviceWorker.register('./service-worker.js', { scope: './' }).then(function() {
         // Registration was successful. Now, check to see whether the service worker is controlling the page.
         if (navigator.serviceWorker.controller) {
             // If .controller is set, then this page is being actively controlled by the service worker.
             console.log('The service worker is currently handling network operations. ' +
                 'If you reload the page, the images (and everything else) will be served from the service worker\'s cache.');
-
 
             sendMessage({
                 command: 'prefetch',
@@ -14,7 +13,6 @@ if ('serviceWorker' in navigator) {
 
             cachedUrlList();
             addLinkButtons();
-
         } else {
             // If .controller isn't set, then prompt the user to reload the page so that the service worker can take
             // control. Until that happens, the service worker's fetch handler won't be used.
@@ -29,15 +27,6 @@ if ('serviceWorker' in navigator) {
     // The current browser doesn't support service workers.
     console.log('Service workers are not supported in the current browser.');
 }
-
-// function urlsToPrefetch() {
-//     var links = self.document.querySelectorAll('a');
-//     var regex = new RegExp('^' + self.location.origin);
-
-//     return [].slice.call(links).map(function(link) {
-//         return link.href.replace(regex, '');
-//     });
-// }
 
 function cachedUrlList() {
     //make ul element
@@ -105,24 +94,31 @@ function sendMessage(message) {
 
 function scrapeUrls() {
 	var selectors = [
-		'#index-panels .panel-1 .column--single',
-		'#index-panels .container--primary-and-secondary-columns .column--primary .container-pigeon',
-		'#index-panels .panel-1 .container--primary-and-secondary-columns div.column--primary .distinct-component-group.container-macaw'
+		'#index-panels .panel-1 .column--single a',
+		'#index-panels .container--primary-and-secondary-columns .column--primary .container-pigeon a',
+		'#index-panels .panel-1 .container--primary-and-secondary-columns div.column--primary .distinct-component-group.container-macaw a'
 	];
 
 	var urlsScraped = [];
 
-	for (var i = 0; i < selectors.length; i++) {
-		var selectedHrefs = document.querySelectorAll(selectors[i] + ' a[href^="/news"]');
-		for (var x = 0; x < selectedHrefs.length; x++) {
-			var url = selectedHrefs[x].href;
-			if (urlsScraped.indexOf(url) === -1) {
-				urlsScraped.push(url);
-			}
-		}
-	}
+    selectors.forEach(function(selector) {
+		var selectedLinks = filterArticleLinks(document.querySelectorAll(selector));
 
+        selectedLinks.forEach(function(link) {
+            if (urlsScraped.indexOf(link.href) === -1) {
+                urlsScraped.push(link.href);
+            }
+        });
+    });
+
+    console.log(urlsScraped);
 	return urlsScraped;
+}
+
+function filterArticleLinks(links) {
+    return [].slice.call(links).filter(function(link) {
+        return link.href.match(/\/news\/[^0-9]+-[0-9]+/);
+    });
 }
 
 function addLinkButtons() {
@@ -130,9 +126,7 @@ function addLinkButtons() {
     var links = document.querySelectorAll('#page a');
     var button = document.createElement('a');
 
-    [].slice.call(links).filter(function(link) {
-        return link.href.match(/\/news\/.+-[0-9]+/);
-    }).forEach(function(link) {
+    filterArticleLinks(links).forEach(function(link) {
         var b = button.cloneNode();
 
         b.title = 'Download this article to read later';

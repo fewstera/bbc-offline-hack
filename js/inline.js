@@ -41,6 +41,7 @@ if ('serviceWorker' in navigator) {
                 command: 'prefetch',
                 urls: urlsToPrefetch()
             }).then(function() {
+                prefetchMainImages();
                 addLinkButtons();
                 setUpOfflineContentBar();
                 cachedUrlList();
@@ -85,7 +86,6 @@ function cachedUrlList() {
             var urlHref = url.replace(regex, '');
             var currentArticle = document.querySelector('#page a[href="'+urlHref+'"]');
             var currentArticleTitle = $(currentArticle).clone().children().remove().end().text();
-            console.log(currentArticleTitle);
 
             var sectionElement = document.createElement('a');
             var sectionhrefAtt = document.createAttribute("href");
@@ -161,11 +161,28 @@ function addLinkButtons() {
         if (cached) {
             button.title = 'This article is available offline';
             button.textContent = ' [ ✓ ]';
+            button.removeEventListener('click', addLinkToCache);
         } else {
             button.title = 'Download this article to read later';
             button.textContent = ' [ + ]';
+            button.addEventListener('click', addLinkToCache);
         }
     };
+
+    function addLinkToCache(event) {
+        var link = event.target;
+
+        link.textContent = ' [...]';
+
+        sendMessage({
+            command: 'prefetch',
+            urls: [link.parentNode.href]
+        }).then(function() {
+            toggleButtonCached(link, true);
+        });
+
+        event.preventDefault();
+    }
 
     sendMessage({
         command: 'keys'
@@ -187,26 +204,49 @@ function addLinkButtons() {
                 toggleButtonCached(b, true);
             } else {
                 toggleButtonCached(b, false);
-                b.addEventListener('click', addLinkToCache);
             }
 
             link.appendChild(b);
         });
+    });
+}
 
-        function addLinkToCache(event) {
-            var link = event.target;
+function prefetchMainImages() {
+    sendMessage({
+        command: 'keys'
+    }).then(function(data) {
+        var promises = [];
 
-            link.textContent = ' [...]';
+        filterArticleLinks(data.urls).forEach(function(url) {
+            var p = new Promise(function(resolve, reject) {
+                $.get(url).success(function(html) {
+                    var $html = $(html);
+                    var image = $('figure img', $html).first();
+
+                    if (image.length) {
+                        resolve(image.attr('src').replace('/200/', '/660/'));
+                    } else {
+                        resolve(null);
+                    }
+                });
+            });
+
+            promises.push(p);
+        });
+
+        Promise.all(promises).then(function(imgSrcs) {
+            imgSrcs = imgSrcs.filter(function(src) {
+                return src !== null;
+            });
 
             sendMessage({
                 command: 'prefetch',
-                urls: [link.parentNode.href]
+                urls: imgSrcs
             }).then(function() {
                 toggleButtonCached(link, true);
                 cachedUrlList();
+                console.log('Prefetched main images for cached articles');
             });
-
-            event.preventDefault();
-        }
+        });
     });
 }

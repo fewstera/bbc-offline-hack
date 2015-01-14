@@ -5,8 +5,6 @@ var CURRENT_CACHES = {
     'read-through': 'read-through-cache-v' + CACHE_VERSION
 };
 
-console.log(self);
-
 self.addEventListener('activate', function(event) {
     // Delete all caches that aren't named in CURRENT_CACHES.
     // While there is only one cache in this example, the same logic will handle the case where
@@ -36,6 +34,8 @@ self.addEventListener('message', function(event) {
     caches.open(CURRENT_CACHES['read-through']).then(function(cache) {
         switch (event.data.command) {
             case 'prefetch':
+                console.log('Prefetching URLs:', event.data.urls);
+
                 cache.keys().then(function(requests) {
                     var cachedUrls = requests.map(function(request) {
                         return request.url;
